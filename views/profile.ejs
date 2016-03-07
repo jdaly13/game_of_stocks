@@ -1,0 +1,70 @@
+<!-- views/profile.ejs -->
+<!doctype html>
+<html>
+<head>
+    <title>Node Authentication</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+    <style>
+        body        { padding-top:80px; word-wrap:break-word; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="page-header text-center">
+        <h1><span class="fa fa-anchor"></span> Profile Page</h1>
+        <a href="/logout" class="btn btn-default btn-sm">Logout</a>
+    </div>
+
+    <div class="row">
+
+        <!-- LOCAL INFORMATION -->
+        <div class="col-sm-6">
+            <div class="well">
+                <h3><span class="fa fa-user"></span> Local</h3>
+
+                    <p>
+                        <strong>id</strong>: <%= user._id %><br>
+                        <strong>email</strong>: <%= user.local.email %><br>
+                        <strong>start Amount</strong>: <%= user.local.startAmount %>
+                    </p>
+
+            </div>
+        </div>
+        
+        <div>
+                <h1>Your Portfolio Balance <%= user.local.balance %> </h1>
+                <% if (user.local.portfolio.length) { %>
+                 <%   user.local.portfolio.forEach(function (obj) { %>
+                        <p><%= obj.symbol %> <%=obj.name %> <%=obj.price%> <%=obj.shares %></p>
+                                                        
+                  <%  }); %>   
+                <% } %>
+
+                
+        </div>
+    
+    </div>
+    <div class="row">
+        <div class="col-sm-6">
+                <div>
+                    <h3>Time to Pick some stawks</h3>
+                    <p>
+                        <label>choose stock symbol</label>
+                        <input type="text" name="symbol">
+                        <button class="getQuote">Get Quote</button>
+                    </p>
+                    <p>
+                        <label>choose amount $</label>
+                        <input type="text" name="amount">
+                    </p>
+                </div>
+        </div>
+    </div>
+
+</div>
+    <script src="/bower_components/jquery/dist/jquery.js"></script>
+    <script src="/js/test.js"></script>
+</body>
+</html>
