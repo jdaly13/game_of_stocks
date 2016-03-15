@@ -204,6 +204,39 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
       });
     });
     
+    app.post('/pickstocks', function(req, res) {
+        console.log(req.user);
+        console.log(req.body);
+        
+        User.findOne({ 'local.email' :  req.user.local.email }, function(err, user) {
+            // if there are any errors, return the error before anything else
+            if (err)
+                return done(err);
+
+            // if no user is found, return the message
+            if (!user)
+                return done(null, false, req.flash('loginMessage', 'No user found.')); // req.flash is the way to set flashdata using connect-flash
+
+            // all is well, return successful user
+            if (!user.local.startAmount) {
+                user.local.startAmount = 100000.00;
+            }
+            
+            user.local.balance = user.local.balance - req.body.investedamount;
+            user.local.portfolio.push({
+                'symbol': req.body.symbol,
+                'noOfShares': parseInt(req.body.noOfShares),
+                'price': parseInt(req.body.price),
+                'investedamount': parseInt(req.body.investedamount)
+            });
+            user.save(function(err) {
+                if (err)
+                    throw err;
+                res.send({success:true});
+            }); 
+        });
+    });
+    
 
     
 };

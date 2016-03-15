@@ -5,6 +5,7 @@
     <title>Node Authentication</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/styles.css">
     <style>
         body        { padding-top:80px; word-wrap:break-word; }
     </style>
@@ -48,7 +49,7 @@
     </div>
     <div class="row">
         <div class="col-sm-6">
-                <div>
+                <div id="pickStocks">
                     <h3>Time to Pick some stawks</h3>
                     <p>
                         <label>choose stock symbol</label>
@@ -56,15 +57,17 @@
                         <button class="getQuote">Get Quote</button>
                     </p>
                     <p>
-                        <label>choose amount $</label>
+                        <label>choose amount to invest</label>
                         <input type="text" name="amount">
                     </p>
+                    <button id="purchase_stock" class="action">Submit</button>
                 </div>
         </div>
     </div>
 
 </div>
     <script src="/bower_components/jquery/dist/jquery.js"></script>
+    <script src="/bower_components/colorbox/jquery.colorbox-min.js"></script>
     <script src="/js/test.js"></script>
 </body>
 </html>

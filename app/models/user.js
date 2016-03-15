@@ -16,8 +16,9 @@ var userSchema = mongoose.Schema({
         portfolio:[ {
             symbol: String,
             name: String,
-            shares: Number,
-            price: Number
+            noOfShares: Number,
+            price: Number,
+            investedamount: Number
         }],
         balance: Number
     },
