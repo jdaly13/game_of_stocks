@@ -204,9 +204,41 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
       });
     });
     
-    app.post('/pickstocks', function(req, res) {
-        console.log(req.user);
-        console.log(req.body);
+    app.post('/pickstocks', function(req, res, done) {
+        var action,
+            investedAmount = +parseFloat(req.body.investedamount).toFixed(2),
+            price = +parseFloat(req.body.price).toFixed(2),
+            noOfShares = +parseFloat(req.body.noOfShares).toFixed(2),
+            symbol = req.body.symbol,
+            name = req.body.name || "Not Available Currently",
+            alreadyInPortfolio = false,
+            existingIndex = false;
+        function buyAction (user) {
+            var portfolioValue = user.balance;
+            console.log(portfolioValue, investedAmount);
+            if (investedAmount > portfolioValue) {
+                return false;
+            }
+            user.purchases.push({
+                symbol: symbol,
+                name: name,
+                noOfShares: noOfShares,
+                purchaseprice: price,
+                purchaseamount: investedAmount
+            });  
+            return true;
+        }
+        
+        function sellAction (user, portfolio) {
+            var weCanSell = portfolio.some(function (obj) {
+                return obj.symbol === symbol
+            });
+            if (!weCanSell) {
+                return false;
+            }
+            
+            
+        }
         
         User.findOne({ 'local.email' :  req.user.local.email }, function(err, user) {
             // if there are any errors, return the error before anything else
@@ -216,23 +248,62 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
             // if no user is found, return the message
             if (!user)
                 return done(null, false, req.flash('loginMessage', 'No user found.')); // req.flash is the way to set flashdata using connect-flash
-
-            // all is well, return successful user
-            if (!user.local.startAmount) {
-                user.local.startAmount = 100000.00;
-            }
             
-            user.local.balance = user.local.balance - req.body.investedamount;
-            user.local.portfolio.push({
-                'symbol': req.body.symbol,
-                'noOfShares': parseInt(req.body.noOfShares),
-                'price': parseInt(req.body.price),
-                'investedamount': parseInt(req.body.investedamount)
-            });
+            var portfolio = user.local.portfolio;
+            action = req.body.buyorsell;
+
+            if (action === 'buy') {
+                if (!buyAction(user.local)) {
+                    req.flash('youBoughtToomuch', 'You don\'t got that much money fool, Go Back and choose again');
+                } else {
+                    user.local.balance = user.local.balance - investedAmount;
+                    portfolio.forEach(function (obj, index) {
+                        if (obj.symbol === symbol) {
+                            obj.noOfShares += noOfShares;
+                            obj.investedamount += investedAmount;
+                            obj.price = (obj.price + price) / 2;
+                            alreadyInPortfolio = true;
+                            existingIndex = index;
+                        } 
+                    });
+            
+                    if (!alreadyInPortfolio) {
+                        portfolio.push({
+                            symbol: symbol,
+                            name: name,
+                            noOfShares: noOfShares,
+                            price: price,
+                            investedamount: investedAmount
+                        })
+                    }
+                }
+            } else {
+                if(!sellAction(user.local, portfolio)) {
+                    req.flash('sillyGoose', 'You can\'t sell a stock you don\'t own; silly goose!!!');
+                } else {
+                    portfolio.forEach(function (obj) {
+                        if (obj.symbol === symbol) {
+                            if (obj.noOfShares < noOfShares) {
+                                req.flash('sillyGooseTwo', 'Silly Goose!!!! you can\'t sell more shares then you own!');
+                            }
+                        }
+                    });          
+                }
+                
+            }
+
+
+            
             user.save(function(err) {
                 if (err)
                     throw err;
-                res.send({success:true});
+                res.send({
+                    success:true,
+                    portfolio: (!alreadyInPortfolio) ? req.body : portfolio[existingIndex],
+                    id: symbol,
+                    balance: user.local.balance,
+                    flashMessage: req.flash(action === 'buy' ? 'youBoughtToomuch' : 'sillyGoose')                   
+                });
             }); 
         });
     });

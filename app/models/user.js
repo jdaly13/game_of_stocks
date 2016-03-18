@@ -20,6 +20,20 @@ var userSchema = mongoose.Schema({
             price: Number,
             investedamount: Number
         }],
+        purchases:[{
+            symbol: String,
+            name: String,
+            noOfShares: Number,
+            purchaseprice: Number,
+            purchaseamount: Number
+        }],
+        sells:[{
+            symbol: String,
+            name: String,
+            noOfShares: Number,
+            sellprice: Number,
+            sellamount: Number
+        }],
         balance: Number
     },
     facebook         : {

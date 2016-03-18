@@ -68,3 +68,11 @@
 .cboxIE #cboxMiddleRight {
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#00FFFFFF,endColorstr=#00FFFFFF);
 }
+
+.display-0 {
+    display:block;
+}
+
+.display-1 {
+    display:none;
+}

@@ -34,11 +34,14 @@
             </div>
         </div>
         
-        <div>
-                <h1>Your Portfolio Balance <%= user.local.balance %> </h1>
+        <div class="yourStawks col-sm-6">
+            <h1>Your Portfolio Balance <span><%= user.local.balance %> </span> </h1>
                 <% if (user.local.portfolio.length) { %>
                  <%   user.local.portfolio.forEach(function (obj) { %>
-                        <p><%= obj.symbol %> <%=obj.name %> <%=obj.price%> <%=obj.shares %></p>
+                        <p id="<%=obj.symbol%>"> 
+                            You have <%=obj.noOfShares %> shares of <%= obj.name %>.   
+                            The average price paid for each share is <%=obj.price %> and your total invested amount is <%=obj.investedamount%>
+                        </p>
                                                         
                   <%  }); %>   
                 <% } %>
@@ -47,27 +50,50 @@
         </div>
     
     </div>
-    <div class="row">
+    <div class="row">             
         <div class="col-sm-6">
-                <div id="pickStocks">
+            <% if (user.local.portfolio.length) { %>
+                <div class="theChoiceIsYours">
+                    <label>Buy Or Sell</label>
+                    <input type="radio" name="tradeAction" value="buy" checked> Buy
+                    <input type="radio" name="tradeAction" value="sell" > Sell
+                </div>
+            <% } %>
+                <div id="buyStocks" class="stockAction">
                     <h3>Time to Pick some stawks</h3>
                     <p>
                         <label>choose stock symbol</label>
                         <input type="text" name="symbol">
                         <button class="getQuote">Get Quote</button>
+                        <span class="quote" style="display:block;"></span>
                     </p>
                     <p>
                         <label>choose amount to invest</label>
                         <input type="text" name="amount">
                     </p>
-                    <button id="purchase_stock" class="action">Submit</button>
+                    <button id="buy_stock" class="placeOrder">Submit</button>
+                </div>
+            
+                <div id="sellStocks" class="stockAction hide">
+                    <h3>Time to Sell some stawks and Cash In</h3>
+                    <p>
+                        <label>choose stock symbol</label>
+                        <input type="text" name="symbol">
+                        <button class="getQuote">Get Quote</button>
+                        <span class="quote" style="display:block;"></span>
+                    </p>
+                    <p>
+                        <label>choose amount to sell</label>
+                        <input type="text" name="amount">
+                    </p>
+                    <button id="sell_stock" class="placeOrder">Submit</button>
                 </div>
         </div>
     </div>
 
 </div>
     <script src="/bower_components/jquery/dist/jquery.js"></script>
-    <script src="/bower_components/colorbox/jquery.colorbox-min.js"></script>
+    <script src="/bower_components/jquery-colorbox/jquery.colorbox-min.js"></script>
     <script src="/js/test.js"></script>
 </body>
 </html>
