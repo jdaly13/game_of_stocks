@@ -1,5 +1,6 @@
 // app/routes.js
 var User = require('../app/models/user');
+var markit = require('node-markitondemand');
 module.exports = function(app, passport, crypto, async, nodemailer ) {
 
     // =====================================
@@ -213,6 +214,8 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
             name = req.body.name || "Not Available Currently",
             alreadyInPortfolio = false,
             existingIndex = false;
+        
+        console.log(noOfShares);
         function buyAction (user) {
             var portfolioValue = user.balance;
             console.log(portfolioValue, investedAmount);
@@ -237,6 +240,7 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
                 return false;
             }
             
+            return weCanSell;
             
         }
         
@@ -249,12 +253,13 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
             if (!user)
                 return done(null, false, req.flash('loginMessage', 'No user found.')); // req.flash is the way to set flashdata using connect-flash
             
-            var portfolio = user.local.portfolio;
+            var portfolio = user.local.portfolio,
+                pushObject = {};
             action = req.body.buyorsell;
 
             if (action === 'buy') {
                 if (!buyAction(user.local)) {
-                    req.flash('youBoughtToomuch', 'You don\'t got that much money fool, Go Back and choose again');
+                    req.flash('sillyGoose', 'You don\'t got that much money fool, Go Back and choose again');
                 } else {
                     user.local.balance = user.local.balance - investedAmount;
                     portfolio.forEach(function (obj, index) {
@@ -268,13 +273,14 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
                     });
             
                     if (!alreadyInPortfolio) {
-                        portfolio.push({
+                        pushObject = {
                             symbol: symbol,
                             name: name,
                             noOfShares: noOfShares,
                             price: price,
                             investedamount: investedAmount
-                        })
+                        }
+                        portfolio.push(pushObject)
                     }
                 }
             } else {
@@ -284,7 +290,10 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
                     portfolio.forEach(function (obj) {
                         if (obj.symbol === symbol) {
                             if (obj.noOfShares < noOfShares) {
-                                req.flash('sillyGooseTwo', 'Silly Goose!!!! you can\'t sell more shares then you own!');
+                                req.flash('sillyGoose', 'Silly Goose!!!! you can\'t sell more shares then you own!');
+                            } else {
+                                //obj.noOfShares = obj.noOfShares - noOfShares;
+                                //obj.investedamount = obj.investedamount - investedAmount;
                             }
                         }
                     });          
@@ -299,10 +308,10 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
                     throw err;
                 res.send({
                     success:true,
-                    portfolio: (!alreadyInPortfolio) ? req.body : portfolio[existingIndex],
+                    portfolio: (!alreadyInPortfolio) ? pushObject : portfolio[existingIndex],
                     id: symbol,
                     balance: user.local.balance,
-                    flashMessage: req.flash(action === 'buy' ? 'youBoughtToomuch' : 'sillyGoose')                   
+                    flashMessage: req.flash('sillyGoose')                   
                 });
             }); 
         });
