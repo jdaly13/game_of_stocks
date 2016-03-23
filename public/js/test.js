@@ -4,10 +4,25 @@
     function getStockQuote (stock, obj, cb) {
        // var beginningUrl = "http://marketdata.websol.barchart.com/getQuote.json?key=",
          //   apiKey = "1c4c6cace9c7babb0d054f23aacd43ee";
-        $.getJSON('http://dev.markitondemand.com/MODApis/Api/v2/Quote/jsonp?symbol='+stock+'&callback=?', cb)
+        $.getJSON('http://dev.markitondemand.com/MODApis/Api/v2/Quote/jsonp?symbol='+stock+'&callback=?', cb);
     }
     
-    var stockObj = {};
+    var utilityFunctions = function () {
+        return {
+           toFixed: function (num) {
+               return +parseFloat(num).toFixed(2);
+           }    
+        };
+    }();
+    
+    var stockObj = {},
+        User = {
+            gainsAndLosses: [],
+            totalInvestedAmount: null,
+            gainsAndLossesTotal: null,
+            netBalance:null,
+            availableBalance: null
+        };
     $('.getQuote').on('click', function () {
         var $this = $(this),
             textInput = $(this).prev().val();
@@ -24,7 +39,7 @@
                 } else {
                     html = stockObj.quote = obj.LastPrice;
                     stockObj.stock = textInput;
-                    stockObj.name = obj.Name
+                    stockObj.name = obj.Name;
                 }
                 $this.next().html(html); 
             });
@@ -74,7 +89,6 @@
                 success: function (data) {
                     var existingdiv = document.getElementById(data.id),
                         $yourStawks = $('.yourStawks');
-                    console.log(data);
                     if (data.flashMessage.length) {$modalContainer.html(data.flashMessage); return false;}
                     if(data.success) {
                         var output = '<p>You have ' + data.portfolio.noOfShares + ' shares of ' + data.portfolio.name + '. The average price paid for each share is ' + data.portfolio.price + ' and your total invested amount is ' + data.portfolio.investedamount;
@@ -92,18 +106,71 @@
                 error: function (e) {
                     console.log(e, 'iwanna be rich');
                 }
-            })  
+            });
         });
     
+    function updateUserObj (gainOrLoss, investedAmount) {
+            User.gainsAndLossesTotal += gainOrLoss;
+            User.totalInvestedAmount += investedAmount;
+    }
     
+    function compareLastPriceToCurrent (markitObj, dbObj) {
+        var lastPrice = utilityFunctions.toFixed(markitObj.LastPrice),
+            string = 'The Current Price of ' + markitObj.Name + 'is ' + lastPrice + '.',
+            averagePricePaid = dbObj.price,
+            investedAmount = dbObj.investedamount,
+            noOfShares = dbObj.noOfShares,
+            currentValue = utilityFunctions.toFixed(lastPrice * noOfShares),
+            gainOrLoss = utilityFunctions.toFixed(currentValue - investedAmount);
+        
+        string += 'The current value of your stock is ' + currentValue + ' Your gains/loss are ' + gainOrLoss;
+       // User.gainsAndLosses.push(gainOrLoss);
+        updateUserObj(gainOrLoss, investedAmount);
+        
+        $('#'+dbObj.symbol).append('<span class="block">' + string + '</span>');
+    }
     
     
     $('[name="tradeAction"]').on('change', function () {
         $('#buyStocks').toggleClass('hide');
         $('#sellStocks').toggleClass('hide');
     });
+    
+    function postUpdatedUserBalance () {
+        $.ajax({
+            url:'/api/balance',
+            type: 'POST',
+            data: User,
+            success: function (userData) {
+                console.log(userData);
+            }
+        });
+    }
 
+    $.getJSON('/api/portfolio', function (obj) {
+        var arr = [];
+        console.log(obj);
+        User.startAmount = obj.data.startAmount;
+        obj.data.portfolio.forEach(function (obj) {
+            arr.push($.getJSON('http://dev.markitondemand.com/MODApis/Api/v2/Quote/jsonp?symbol='+obj.symbol+'&callback=?'));
+        });
+        
+        var defer = $.when.apply(window, arr);
+        defer.done(function () {
+            for (var i=0; i<arguments.length; i++) {
+                compareLastPriceToCurrent(arguments[i][0], obj.data.portfolio[i]);     
+            }
+            
+            User.availableBalance = User.startAmount - User.totalInvestedAmount;
+            User.gainsAndLossesTotal = utilityFunctions.toFixed(User.gainsAndLossesTotal);
+            User.netBalance = (User.gainsAndLosses<0) ? User.availableBalance - Math.abs(User.gainsAndLossesTotal) : User.availableBalance + User.gainsAndLossesTotal;
+            console.log(User);
+            postUpdatedUserBalance();
+            
+        });
+        
+        
+    });
  
  
- 
- })()
+ })(window, document);

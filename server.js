@@ -40,6 +40,7 @@ app.use(flash()); // use connect-flash for flash messages stored in session
 
 // routes ======================================================================
 require('./app/routes.js')(app, passport, crypto, async, nodemailer); // load our routes and pass in our app and fully configured passport
+require('./app/api.js')(express, app, passport);
 //app.use('/', express.static(__dirname + '/'));
 app.use(express.static(__dirname + '/public'));
 app.use('/bower_components',  express.static(__dirname + '/bower_components'));

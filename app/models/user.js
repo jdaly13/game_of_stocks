@@ -12,8 +12,11 @@ var userSchema = mongoose.Schema({
         resetPasswordToken: String,
         resetPasswordExpires: Date,
         startAmount: Number,
-        total: Number,
-        portfolio:[ {
+        totalInvestedAmount: Number,
+        netBalance: Number,
+        gainOrLoss: Number,
+        availableBalance: Number,
+        portfolio:[{
             symbol: String,
             name: String,
             noOfShares: Number,
@@ -33,8 +36,7 @@ var userSchema = mongoose.Schema({
             noOfShares: Number,
             sellprice: Number,
             sellamount: Number
-        }],
-        balance: Number
+        }]
     },
     facebook         : {
         id           : String,

@@ -1,6 +1,6 @@
 // app/routes.js
 var User = require('../app/models/user');
-var markit = require('node-markitondemand');
+var auth = require('../config/auth').sendGrid;
 module.exports = function(app, passport, crypto, async, nodemailer ) {
 
     // =====================================
@@ -57,7 +57,6 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
     // we will want this protected so you have to be logged in to visit
     // we will use route middleware to verify this (the isLoggedIn function)
     app.get('/profile', isLoggedIn, function(req, res) {
-        console.log(req.user)
         res.render('profile.ejs', {
             user : req.user // get the user out of session and pass to template
         });
@@ -110,8 +109,8 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
           var smtpTransport = nodemailer.createTransport('SMTP', {
             service: 'SendGrid',
             auth: {
-              user: 'jaimiedaly',
-              pass: 'milkfat13'
+              user: auth.user,
+              pass: auth.pass
             }
           });
           var mailOptions = {
@@ -215,7 +214,6 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
             alreadyInPortfolio = false,
             existingIndex = false;
         
-        console.log(noOfShares);
         function buyAction (user) {
             var portfolioValue = user.balance;
             console.log(portfolioValue, investedAmount);
