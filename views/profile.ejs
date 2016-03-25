@@ -35,12 +35,15 @@
         </div>
         
         <div class="yourStawks col-sm-6">
-            <h1>Your Portfolio Balance <span><%= user.local.balance %> </span> </h1>
+            <h3>Your available balance to spend: <span><%= user.local.availableBalance %> </span> </h3>
+            <h3>Your gain/loss: <span><%= user.local.gainOrLoss %> </span> </h3>
+             <h3>Your net balance: <span><%= user.local.netBalance %> </span> </h3>
+            <h3> Your portfolio Value: <span> <%= user.local.portfolioValue %> </span></h3>
                 <% if (user.local.portfolio.length) { %>
                  <%   user.local.portfolio.forEach(function (obj) { %>
                         <p id="<%=obj.symbol%>"> 
                             You have <%=obj.noOfShares %> shares of <%= obj.name %>.   
-                            The average price paid for each share is <%=obj.price %> and your total invested amount is <%=obj.investedamount%>
+                            The average price per share is <%=obj.averagePricePerShare %> and your total invested amount is <%=obj.investedamount%>
                         </p>
                                                         
                   <%  }); %>   

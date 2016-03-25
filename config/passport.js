@@ -113,7 +113,8 @@ module.exports = function(passport) {
             if (!user.local.startAmount) {
                 user.local.startAmount = 100000.00;
             }
-            //user.local.balance = (!user.local.balance) ? user.local.startAmount : user.local.balance;
+            user.local.availableBalance = (!user.local.availableBalance) ? user.local.startAmount : user.local.availableBalance;
+            user.local.totalInvestedAmount = (!user.local.totalInvestedAmount) ? 0 : user.local.totalInvestedAmount;
             user.save(function(err) {
                 if (err)
                     throw err;

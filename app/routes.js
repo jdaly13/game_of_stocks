@@ -1,6 +1,7 @@
 // app/routes.js
 var User = require('../app/models/user');
 var auth = require('../config/auth').sendGrid;
+var sellCommission = 10; // put this in separate file
 module.exports = function(app, passport, crypto, async, nodemailer ) {
 
     // =====================================
@@ -152,7 +153,6 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
     });
     
     app.post('/reset/:token', function(req, res) {
-        console.log(req, res)
       async.waterfall([
         function(done) {
           User.findOne({ 'local.resetPasswordToken': req.params.token, 'local.resetPasswordExpires': { $gt: Date.now() } }, function(err, user) {
@@ -205,7 +205,7 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
     });
     
     app.post('/pickstocks', function(req, res, done) {
-        var action,
+        var action = req.body.buyorsell,
             investedAmount = +parseFloat(req.body.investedamount).toFixed(2),
             price = +parseFloat(req.body.price).toFixed(2),
             noOfShares = +parseFloat(req.body.noOfShares).toFixed(2),
@@ -216,7 +216,6 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
         
         function buyAction (user) {
             var portfolioValue = user.balance;
-            console.log(portfolioValue, investedAmount);
             if (investedAmount > portfolioValue) {
                 return false;
             }
@@ -231,14 +230,37 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
         }
         
         function sellAction (user, portfolio) {
-            var weCanSell = portfolio.some(function (obj) {
-                return obj.symbol === symbol
-            });
-            if (!weCanSell) {
-                return false;
+            var message = false,
+                match = false,
+                portfolioIndex;
+            for (var i=0; i<portfolio.length; i++) {
+                if (portfolio[i].symbol === symbol) {
+                    match = true;
+                    portfolioIndex = i;
+                    if (portfolio[i].noOfShares < noOfShares) {
+                        message = true;
+                    }                   
+                }
             }
             
-            return weCanSell;
+            if (message) {
+                return 'Silly Goose!!!! you can\'t sell more shares then you own!';
+            }
+            
+            if (!match) {
+                return 'Silly Goose!!!! you can\'t sell a stock you don\t own';
+            } 
+            
+            user.sells.push({
+                symbol: symbol,
+                name: name,
+                noOfShares: noOfShares,
+                sellprice: price,
+                sellamount: investedAmount,
+                commission: sellCommission
+            })
+            
+            return portfolioIndex;
             
         }
         
@@ -253,18 +275,18 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
             
             var portfolio = user.local.portfolio,
                 pushObject = {};
-            action = req.body.buyorsell;
 
             if (action === 'buy') {
                 if (!buyAction(user.local)) {
                     req.flash('sillyGoose', 'You don\'t got that much money fool, Go Back and choose again');
                 } else {
-                    user.local.balance = user.local.balance - investedAmount;
+                    user.local.availableBalance = user.local.availableBalance - investedAmount;
+                    user.local.totalInvestedAmount += investedAmount;
                     portfolio.forEach(function (obj, index) {
                         if (obj.symbol === symbol) {
                             obj.noOfShares += noOfShares;
                             obj.investedamount += investedAmount;
-                            obj.price = (obj.price + price) / 2;
+                            obj.averagePricePaidPerShare = obj.investedamount / obj.noOfShares;
                             alreadyInPortfolio = true;
                             existingIndex = index;
                         } 
@@ -275,30 +297,25 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
                             symbol: symbol,
                             name: name,
                             noOfShares: noOfShares,
-                            price: price,
+                            averagePricePaidPerShare: price,
                             investedamount: investedAmount
                         }
                         portfolio.push(pushObject)
                     }
                 }
             } else {
-                if(!sellAction(user.local, portfolio)) {
-                    req.flash('sillyGoose', 'You can\'t sell a stock you don\'t own; silly goose!!!');
+                var notAllowedToSellMessage = sellAction(user.local, portfolio);
+                if (typeof notAllowedToSell === 'string') { //if not string it will be number
+                    req.flash('sillyGoose', notAllowedToSellMessage);
                 } else {
-                    portfolio.forEach(function (obj) {
-                        if (obj.symbol === symbol) {
-                            if (obj.noOfShares < noOfShares) {
-                                req.flash('sillyGoose', 'Silly Goose!!!! you can\'t sell more shares then you own!');
-                            } else {
-                                //obj.noOfShares = obj.noOfShares - noOfShares;
-                                //obj.investedamount = obj.investedamount - investedAmount;
-                            }
-                        }
-                    });          
+                    existingIndex = notAllowedToSellMessage;
+                    portfolio[existingIndex].noOfShares -= noOfShares;
+                    portfolio[existingIndex].investedamount -= investedAmount;
+                    portfolio[existingIndex].averagePricePaidPerShare = portfolio[existingIndex].investedamount / portfolio[existingIndex].noOfShares;                
+                    user.local.portfolioCashValue =  (user.local.portfolioCashValue + investedAmount)  - sellCommission;  // 10 is fee should put this somewhere else
                 }
                 
             }
-
 
             
             user.save(function(err) {
@@ -306,7 +323,7 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
                     throw err;
                 res.send({
                     success:true,
-                    portfolio: (!alreadyInPortfolio) ? pushObject : portfolio[existingIndex],
+                    portfolio: (action === 'buy') ? (!alreadyInPortfolio) ? pushObject : portfolio[existingIndex] : portfolio[existingIndex],
                     id: symbol,
                     balance: user.local.balance,
                     flashMessage: req.flash('sillyGoose')                   

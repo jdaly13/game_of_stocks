@@ -25,6 +25,7 @@ module.exports = function (express, app, passport) {
            user.local.totalInvestedAmount = req.body.totalInvestedAmount;
            user.local.netBalance = req.body.netBalance;
            user.local.gainOrLoss = req.body.gainsAndLossesTotal;
+           user.local.portfolioValue = req.body.portfolioValue;
            console.log(user);
            
             user.save(function(err) {
@@ -41,4 +42,4 @@ module.exports = function (express, app, passport) {
     
     app.use('/api', router);
     
-}
+};

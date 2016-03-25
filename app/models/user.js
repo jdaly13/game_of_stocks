@@ -16,11 +16,13 @@ var userSchema = mongoose.Schema({
         netBalance: Number,
         gainOrLoss: Number,
         availableBalance: Number,
+        portfolioValue: Number,
+        portfolioCashValue: {type: Number, default: 0 },
         portfolio:[{
             symbol: String,
             name: String,
             noOfShares: Number,
-            price: Number,
+            averagePricePaidPerShare: Number,
             investedamount: Number
         }],
         purchases:[{
@@ -73,7 +75,7 @@ userSchema.methods.validPassword = function(password) {
 userSchema.methods.getBalance = function() {
     console.log(this);
      return this.startAmount - (this.total || 0);
-}
+};
 
 // create the model for users and expose it to our app
 module.exports = mongoose.model('User', userSchema);

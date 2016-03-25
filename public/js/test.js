@@ -2,8 +2,6 @@
  'use strict';
     
     function getStockQuote (stock, obj, cb) {
-       // var beginningUrl = "http://marketdata.websol.barchart.com/getQuote.json?key=",
-         //   apiKey = "1c4c6cace9c7babb0d054f23aacd43ee";
         $.getJSON('http://dev.markitondemand.com/MODApis/Api/v2/Quote/jsonp?symbol='+stock+'&callback=?', cb);
     }
     
@@ -21,8 +19,10 @@
             totalInvestedAmount: null,
             gainsAndLossesTotal: null,
             netBalance:null,
-            availableBalance: null
+            availableBalance: null,
+            portfolioValue: null
         };
+    
     $('.getQuote').on('click', function () {
         var $this = $(this),
             textInput = $(this).prev().val();
@@ -74,7 +74,6 @@
         var $modal = $('#colorbox'),
             $modalContainer = $modal.find('.container');
             $modalContainer.html('<img src="/images/loading.gif"/>');
-        
         $.ajax({
                 url: $(this).attr('action'),
                 type: 'POST',
@@ -89,6 +88,7 @@
                 success: function (data) {
                     var existingdiv = document.getElementById(data.id),
                         $yourStawks = $('.yourStawks');
+                    console.log(data);
                     if (data.flashMessage.length) {$modalContainer.html(data.flashMessage); return false;}
                     if(data.success) {
                         var output = '<p>You have ' + data.portfolio.noOfShares + ' shares of ' + data.portfolio.name + '. The average price paid for each share is ' + data.portfolio.price + ' and your total invested amount is ' + data.portfolio.investedamount;
@@ -109,9 +109,10 @@
             });
         });
     
-    function updateUserObj (gainOrLoss, investedAmount) {
+    function updateUserObj (gainOrLoss, investedAmount, currentValue) {
             User.gainsAndLossesTotal += gainOrLoss;
             User.totalInvestedAmount += investedAmount;
+            User.portfolioValue += currentValue;
     }
     
     function compareLastPriceToCurrent (markitObj, dbObj) {
@@ -125,7 +126,7 @@
         
         string += 'The current value of your stock is ' + currentValue + ' Your gains/loss are ' + gainOrLoss;
        // User.gainsAndLosses.push(gainOrLoss);
-        updateUserObj(gainOrLoss, investedAmount);
+        updateUserObj(gainOrLoss, investedAmount, currentValue);
         
         $('#'+dbObj.symbol).append('<span class="block">' + string + '</span>');
     }
@@ -161,9 +162,10 @@
                 compareLastPriceToCurrent(arguments[i][0], obj.data.portfolio[i]);     
             }
             
+            User.totalInvestedAmount += obj.data.portfolioCashValue;
             User.availableBalance = User.startAmount - User.totalInvestedAmount;
             User.gainsAndLossesTotal = utilityFunctions.toFixed(User.gainsAndLossesTotal);
-            User.netBalance = (User.gainsAndLosses<0) ? User.availableBalance - Math.abs(User.gainsAndLossesTotal) : User.availableBalance + User.gainsAndLossesTotal;
+            User.netBalance = (User.gainsAndLossesTotal<0) ? User.availableBalance - Math.abs(User.gainsAndLossesTotal) : User.availableBalance + User.gainsAndLossesTotal;
             console.log(User);
             postUpdatedUserBalance();
             
