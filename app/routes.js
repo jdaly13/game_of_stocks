@@ -215,7 +215,7 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
             existingIndex = false;
         
         function buyAction (user) {
-            var portfolioValue = user.balance;
+            var portfolioValue = user.availableBalance;
             if (investedAmount > portfolioValue) {
                 return false;
             }
@@ -286,7 +286,7 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
                         if (obj.symbol === symbol) {
                             obj.noOfShares += noOfShares;
                             obj.investedamount += investedAmount;
-                            obj.averagePricePaidPerShare = obj.investedamount / obj.noOfShares;
+                            obj.pershareavg = obj.investedamount / obj.noOfShares;
                             alreadyInPortfolio = true;
                             existingIndex = index;
                         } 
@@ -297,7 +297,7 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
                             symbol: symbol,
                             name: name,
                             noOfShares: noOfShares,
-                            averagePricePaidPerShare: price,
+                            pershareavg: price,
                             investedamount: investedAmount
                         }
                         portfolio.push(pushObject)
@@ -325,7 +325,8 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
                     success:true,
                     portfolio: (action === 'buy') ? (!alreadyInPortfolio) ? pushObject : portfolio[existingIndex] : portfolio[existingIndex],
                     id: symbol,
-                    balance: user.local.balance,
+                    availableBalance: user.local.availableBalance,
+										netBalance: user.local.netBalance,
                     flashMessage: req.flash('sillyGoose')                   
                 });
             }); 

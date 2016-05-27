@@ -40,15 +40,13 @@
              <h3>Your net balance: <span><%= user.local.netBalance %> </span> </h3>
             <h3> Your portfolio Value: <span> <%= user.local.portfolioValue %> </span></h3>
                 <% if (user.local.portfolio.length) { %>
-                 <%   user.local.portfolio.forEach(function (obj) { %>
+                 <%   user.local.portfolio.forEach(function (obj, key) { %>
                         <p id="<%=obj.symbol%>"> 
                             You have <%=obj.noOfShares %> shares of <%= obj.name %>.   
-                            The average price per share is <%=obj.averagePricePerShare %> and your total invested amount is <%=obj.investedamount%>
-                        </p>
-                                                        
+                            The average price per share is <%=obj.pershareavg%> and your total invested amount is <%=obj.investedamount%>
+                        </p>                                                        
                   <%  }); %>   
                 <% } %>
-
                 
         </div>
     

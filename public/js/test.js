@@ -20,7 +20,7 @@
             gainsAndLossesTotal: null,
             netBalance:null,
             availableBalance: null,
-            portfolioValue: null
+            portfolioValue: 0
         };
     
     $('.getQuote').on('click', function () {
@@ -52,7 +52,7 @@
         stockObj.buyOrSell = this.id.split('_')[0]; //buy or sell
         var $container = $('#'+stockObj.buyOrSell+'Stocks');
         stockObj.amount = $container.find("input[name = 'amount']").val();
-        stockObj.noOfShares = stockObj.amount / stockObj.quote;
+        stockObj.noOfShares = utilityFunctions.toFixed(stockObj.amount / stockObj.quote);
         
         
         if (typeof stockObj.quote !== "number" || !stockObj.stock) {
@@ -91,8 +91,8 @@
                     console.log(data);
                     if (data.flashMessage.length) {$modalContainer.html(data.flashMessage); return false;}
                     if(data.success) {
-                        var output = '<p>You have ' + data.portfolio.noOfShares + ' shares of ' + data.portfolio.name + '. The average price paid for each share is ' + data.portfolio.price + ' and your total invested amount is ' + data.portfolio.investedamount;
-                        $yourStawks.find('h1 > span').text(data.balance);
+                        var output = '<p>You have ' + data.portfolio.noOfShares + ' shares of ' + data.portfolio.name + '. The average price paid for each share is ' + data.portfolio.pershareavg + ' and your total invested amount is ' + data.portfolio.investedamount;
+                        //$yourStawks.find('h1 > span').text(data.balance);
                         if(existingdiv) {
                             existingdiv.innerHTML = output;
                         } else {
@@ -118,7 +118,7 @@
     function compareLastPriceToCurrent (markitObj, dbObj) {
         var lastPrice = utilityFunctions.toFixed(markitObj.LastPrice),
             string = 'The Current Price of ' + markitObj.Name + 'is ' + lastPrice + '.',
-            averagePricePaid = dbObj.price,
+            averagePricePaid = dbObj.pershareavg,
             investedAmount = dbObj.investedamount,
             noOfShares = dbObj.noOfShares,
             currentValue = utilityFunctions.toFixed(lastPrice * noOfShares),
@@ -159,12 +159,14 @@
         var defer = $.when.apply(window, arr);
         defer.done(function () {
             for (var i=0; i<arguments.length; i++) {
-                compareLastPriceToCurrent(arguments[i][0], obj.data.portfolio[i]);     
+								var whatToUse = (!Array.isArray(arguments[i])) ? arguments[i] : arguments[i][0];
+                compareLastPriceToCurrent(whatToUse, obj.data.portfolio[i]);
+								if (!Array.isArray(arguments[i])) break;
             }
             
             User.totalInvestedAmount += obj.data.portfolioCashValue;
             User.availableBalance = User.startAmount - User.totalInvestedAmount;
-            User.gainsAndLossesTotal = utilityFunctions.toFixed(User.gainsAndLossesTotal);
+            User.gainsAndLossesTotal = utilityFunctions.toFixed(User.gainsAndLossesTotal) || 0;
             User.netBalance = (User.gainsAndLossesTotal<0) ? User.availableBalance - Math.abs(User.gainsAndLossesTotal) : User.availableBalance + User.gainsAndLossesTotal;
             console.log(User);
             postUpdatedUserBalance();

@@ -22,7 +22,7 @@ var userSchema = mongoose.Schema({
             symbol: String,
             name: String,
             noOfShares: Number,
-            averagePricePaidPerShare: Number,
+            pershareavg: Number,
             investedamount: Number
         }],
         purchases:[{
