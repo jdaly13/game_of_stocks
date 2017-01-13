@@ -21,7 +21,8 @@
             netBalance:null,
             availableBalance: null,
             portfolioValue: 0
-        };
+        },
+				purchaseStocksUrl = "/pickstocks";
     
     $('.getQuote').on('click', function () {
         var $this = $(this),
@@ -62,7 +63,7 @@
         
         $.colorbox({
             'html': function () {
-               return '<div class="container"> <p>You are about to ' + stockObj.buyOrSell + ' ' + stockObj.noOfShares + ' shares of ' + stockObj.name + ' for a total amount of ' + stockObj.amount + '  </p> <p> <button action="/pickstocks" id="confirmStock">confirm</button></div>';
+               return '<div class="container"> <p>You are about to ' + stockObj.buyOrSell + ' ' + stockObj.noOfShares + ' shares of ' + stockObj.name + ' for a total amount of ' + stockObj.amount + '  </p> <p> <button action='+purchaseStocksUrl+ ' id="confirmStock">confirm</button></div>';
             }
         });
         
@@ -160,6 +161,7 @@
         defer.done(function () {
             for (var i=0; i<arguments.length; i++) {
 								var whatToUse = (!Array.isArray(arguments[i])) ? arguments[i] : arguments[i][0];
+								console.log(obj.data.portfolio[i]);
                 compareLastPriceToCurrent(whatToUse, obj.data.portfolio[i]);
 								if (!Array.isArray(arguments[i])) break;
             }

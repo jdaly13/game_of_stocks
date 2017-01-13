@@ -52,12 +52,12 @@ gulp.task('bower', function() {
 
 gulp.task('serve', serve({
     root: ['public', 'build'],
-    port: 8080
+    port: 8090
 }));
 gulp.task('serve-build', serve(['public', 'build']));
 gulp.task('serve-prod', serve({
   root: ['public', 'build'],
-  port: 8080,
+  port: 8090,
   middleware: function(req, res) {
     // custom optional middleware
   }

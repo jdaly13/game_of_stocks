@@ -263,9 +263,25 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
             return portfolioIndex;
             
         }
+			
+			
+				function findoutGainOrLossNetBalanceAndPortfolioValue (portfolio, investedAmount, availableBalance) {
+					var totalValue;
+					portfolio.forEach(function(obj,index) {
+							totalValue += obj.noOfShares * price
+					});
+					console.log(totalValue, portfolio, investedAmount, availableBalance);
+					return {
+						gainOrLoss: totalValue - investedAmount,
+						netBalance: availableBalance + this.gainOrLoss,
+						portfolioValue: investedAmount + this.gainOrLoss
+					};
+					
+				}
         
         User.findOne({ 'local.email' :  req.user.local.email }, function(err, user) {
             // if there are any errors, return the error before anything else
+						var obj = {};
             if (err)
                 return done(err);
 
@@ -302,6 +318,12 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
                         }
                         portfolio.push(pushObject)
                     }
+									
+									obj = findoutGainOrLossNetBalanceAndPortfolioValue(portfolio, user.local.totalInvestedAmount, user.local.availableBalance);
+									console.log(obj);
+									user.local.gainOrLoss = obj.gainOrLoss;
+									user.local.netBalance = obj.netBalance;
+									user.local.portfolioValue = obj.portfolioValue;
                 }
             } else {
                 var notAllowedToSellMessage = sellAction(user.local, portfolio);
