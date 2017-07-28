@@ -4,7 +4,7 @@
 // get all the tools we need
 var express  = require('express');
 var app      = express();
-var port     = process.env.PORT || 8090;
+var port     = process.env.PORT || 3090;
 var mongoose = require('mongoose');
 var nodemailer = require('nodemailer');
 var passport = require('passport');
@@ -15,7 +15,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser   = require('body-parser');
 var session      = require('express-session');
 var bcrypt       = require('bcrypt-nodejs');
-var async        = require('async');
+var asynch        = require('async');
 var crypto       = require('crypto');
 
 var configDBurl = require('./config/database.js').url;
@@ -39,7 +39,7 @@ app.use(passport.session()); // persistent login sessions
 app.use(flash()); // use connect-flash for flash messages stored in session
 
 // routes ======================================================================
-require('./app/routes.js')(app, passport, crypto, async, nodemailer); // load our routes and pass in our app and fully configured passport
+require('./app/routes.js')(app, passport, crypto, asynch, nodemailer); // load our routes and pass in our app and fully configured passport
 require('./app/api.js')(express, app, passport);
 //app.use('/', express.static(__dirname + '/'));
 app.use(express.static(__dirname + '/public'));

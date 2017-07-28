@@ -7,7 +7,8 @@ module.exports = function(app, passport, crypto, async, nodemailer ) {
     // =====================================
     // HOME PAGE (with login links) ========
     // =====================================
-    app.get('/', redirectToProfile, function(req, res, next) {     
+    app.get('/', redirectToProfile, function(req, res, next) { 
+			console.log(res);
         res.render('index.ejs',{
             message: req.flash('success')
         }); // load the index.ejs file
